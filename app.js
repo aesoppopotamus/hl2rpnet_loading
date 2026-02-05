@@ -46,10 +46,10 @@ const audioBtn = document.getElementById("audioToggle");
 
 // Keep this static.
 const VIDEOS = [
-  "assets/checkpointloop.mp4",
-  "assets/trainrideloop.mp4",
-  "assets/checkpointloop2.mp4",
-  "assets/citadel.mp4",
+  "assets/checkpointloop.webm",
+  "assets/trainrideloop.webm",
+  "assets/checkpointloop2.webm",
+  "assets/citadel.webm",
 ];
 
 function pickVideo() {
