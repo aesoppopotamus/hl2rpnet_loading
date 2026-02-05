@@ -7,16 +7,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<video id="bg" muted loop playsinline preload="auto" autoplay poster="assets/poster.jpg"></video>
+  <video
+    id="bg"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    poster="assets/poster.jpg"
+  ></video>
 
-<div id="clickToEnable" style="display:none; position:fixed; inset:0;"></div>
+  <div id="startGate" class="start-gate" style="display:none;"></div>
 
-<div id="startGate" class="start-gate" style="display:none;"></div>
-
-<button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" style="display:none;">
-  Enable audio
-</button>
-
+  <button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" style="display:none;">
+    Enable audio
+  </button>
 
   <div class="overlay">
     <div class="brand">
