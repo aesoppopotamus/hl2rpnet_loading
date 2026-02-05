@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Loading…</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <video id="bg" autoplay muted loop playsinline preload="auto" poster="assets/poster.jpg">
+    <source src="assets/trainrideloop.mp4" type="video/mp4">
+  </video>
+
+<button id="start">Enable Audio</button>
+
+<div id="clickToEnable" style="display:none; position:fixed; inset:0;"></div>
+
+<div id="startGate" class="start-gate" style="display:none;"></div>
+
+<button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" style="display:none;">
+  Enable audio
+</button>
+
+
+  <div class="overlay">
+    <div class="brand">
+      <div class="server-name">hl2-roleplay.net</div>
+      <div class="subtitle">Workshop content loading…</div>
+    </div>
+
+    <div class="progress">
+      <div class="bar"><div class="fill" id="fill"></div></div>
+      <div class="status" id="status">Initializing…</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
