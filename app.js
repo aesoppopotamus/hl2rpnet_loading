@@ -36,6 +36,7 @@ const VIDEOS = [
   "assets/checkpointloop.mp4",
   "assets/trainrideloop.mp4",
   "assets/checkpointloop2.mp4",
+  "assets/citadel.mp4",
 ];
 
 // Pick once per page load
