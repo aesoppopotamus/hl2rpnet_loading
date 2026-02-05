@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,31 +8,41 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <video
-    id="bg"
-    autoplay
-    loop
-    playsinline
-    preload="auto"
-  ></video>
 
-  <div id="startGate" class="start-gate" style="display:none;"></div>
+  <!-- Background video -->
+  <video id="bg" preload="auto"></video>
 
-  <button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" style="display:none;">
-    Enable audio
-  </button>
+  <!-- Dark overlay / vignette -->
+  <div class="vignette" aria-hidden="true"></div>
 
-  <div class="overlay">
-    <div class="brand">
-      <div class="server-name">hl2-roleplay.net</div>
-      <div class="subtitle">Workshop content loading…</div>
-    </div>
-
-    <div class="progress">
-      <div class="bar"><div class="fill" id="fill"></div></div>
-      <div class="status" id="status">Initializing…</div>
+  <!-- Click gate (only shown if autoplay is blocked) -->
+  <div id="startGate" class="startGate" style="display:none;">
+    <div class="startGate__card">
+      <div class="startGate__title">Click to enable sound</div>
+      <div class="startGate__sub">Autoplay with audio is blocked on many clients.</div>
     </div>
   </div>
+
+  <!-- UI -->
+  <main class="wrap">
+    <section class="card" role="status" aria-live="polite">
+      <header class="top">
+        <h1 class="title">Joining server…</h1>
+        <div class="meta">
+          <div id="status" class="status">Initializing…</div>
+        </div>
+      </header>
+
+      <div class="bar" aria-label="Loading progress">
+        <div id="fill" class="bar__fill"></div>
+      </div>
+
+      <div class="barline">
+        <div class="hint">If this is blank, HTML is blocked client-side.</div>
+        <div class="pct" id="pctLabel"> </div>
+      </div>
+    </section>
+  </main>
 
   <script src="app.js"></script>
 </body>

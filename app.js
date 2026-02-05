@@ -1,191 +1,152 @@
 // ==============================
 // Progress / GMod loading hooks
 // ==============================
-const fill = document.getElementById("fill");
-const status = document.getElementById("status");
+var fill = document.getElementById("fill");
+var statusEl = document.getElementById("status");
 
 function setProgress(p) {
   if (!fill) return;
-  const pct = Math.max(0, Math.min(1, p)) * 100;
-  fill.style.width = pct.toFixed(1) + "%";
+  if (p < 0) p = 0;
+  if (p > 1) p = 1;
+  fill.style.width = Math.round(p * 100) + "%";
 }
 
-window.__filesTotal = 0;
-window.__isGmod = false;
+var filesTotal = 0;
+var isGmod = false;
 
-window.GameDetails = function (servername, serverurl, mapname, maxplayers, steamid, gamemode) {
-  // This function being called is a strong signal we are inside GMod's loading screen context.
-  window.__isGmod = true;
+window.GameDetails = function () {
+  isGmod = true;
 
-  // If you have an audio toggle button, never show it in GMod.
-  const audioBtn = document.getElementById("audioToggle");
+  // Hide any audio UI in real GMod context
+  var audioBtn = document.getElementById("audioToggle");
   if (audioBtn) audioBtn.style.display = "none";
 };
 
 window.SetStatusChanged = function (s) {
-  if (status) status.textContent = s || "Loading…";
+  if (statusEl) statusEl.textContent = s || "Loading…";
 };
 
 window.SetFilesTotal = function (total) {
-  window.__filesTotal = total || 0;
+  filesTotal = total || 0;
 };
 
 window.SetFilesNeeded = function (needed) {
-  const total = window.__filesTotal || 0;
-  if (total > 0) setProgress((total - needed) / total);
+  if (!filesTotal) return;
+  setProgress((filesTotal - needed) / filesTotal);
 };
 
+// Small non-zero start so it doesn't look dead
 setProgress(0.02);
 
 // ==============================
 // Video selection + playback
 // ==============================
-const v = document.getElementById("bg");
-const startGate = document.getElementById("startGate");
-const audioBtn = document.getElementById("audioToggle");
+var v = document.getElementById("bg");
+var startGate = document.getElementById("startGate");
 
-// Keep this static.
-const VIDEOS = [
+var VIDEOS = [
   "assets/checkpointloop.webm",
   "assets/trainrideloop.webm",
   "assets/checkpointloop2.webm",
-  "assets/citadel.webm",
+  "assets/citadel.webm"
 ];
 
 function pickVideo() {
-  // Persist per-tab so refreshes don't flicker choices
+  // Keep choice stable for the tab so refresh doesn’t flicker
   try {
-    const key = "gmod_loading_pick";
-    const existing = sessionStorage.getItem(key);
-    if (existing && VIDEOS.includes(existing)) return existing;
-    const chosen = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
+    var key = "gmod_loading_pick";
+    var existing = sessionStorage.getItem(key);
+    if (existing && arrayIncludes(VIDEOS, existing)) return existing;
+
+    var chosen = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
     sessionStorage.setItem(key, chosen);
     return chosen;
-  } catch {
+  } catch (e) {
     return VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
   }
 }
 
-function isRealChromeDesktop() {
-  const ua = navigator.userAgent || "";
-  const isChromium = /Chrome\/\d+/i.test(ua);
-  const isEdge = /Edg\//i.test(ua);
-  const isOpera = /OPR\//i.test(ua);
-  return isChromium && !isEdge && !isOpera;
-}
-
-function setAudioBtnState(enabled) {
-  if (!audioBtn) return;
-  audioBtn.setAttribute("aria-pressed", enabled ? "true" : "false");
-  audioBtn.textContent = enabled ? "Disable audio" : "Enable audio";
-}
-
-async function tryPlayMuted() {
-  if (!v) return true;
-
-  // Force autoplay-friendly state
-  v.muted = true;
-  v.volume = 1.0;
-  v.loop = true;
-  v.playsInline = true;
-
-  // Some CEF builds behave better if these are also reflected as attributes
-  v.setAttribute("muted", "");
-  v.setAttribute("playsinline", "");
-  v.setAttribute("autoplay", "");
-
-  // Try now
-  try { await v.play(); } catch {}
-
-  // If paused, wait for readiness and retry
-  if (v.paused) {
-    await new Promise((resolve) => {
-      const done = () => resolve();
-      v.addEventListener("loadeddata", done, { once: true });
-      v.addEventListener("canplay", done, { once: true });
-      setTimeout(done, 1000);
-    });
-    try { await v.play(); } catch {}
+function arrayIncludes(arr, val) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] === val) return true;
   }
-
-  // One more microtask retry
-  if (v.paused) {
-    await new Promise((r) => setTimeout(r, 0));
-    try { await v.play(); } catch {}
-  }
-
-  return !v.paused;
-}
-
-async function forceStartGateIfNeeded() {
-  if (!v || !startGate) return;
-
-  const started = await tryPlayMuted();
-  if (started) {
-    startGate.style.display = "none";
-    return;
-  }
-
-  // Muted autoplay failed: require a click to start muted playback.
-  startGate.style.display = "block";
-  startGate.addEventListener("click", async () => {
-    v.muted = true;
-    v.volume = 1.0;
-    try { await v.play(); } catch {}
-    if (!v.paused) startGate.style.display = "none";
-  });
-}
-
-function setupAudioToggle() {
-  if (!audioBtn || !v) return;
-
-  // Default hidden. Only show in real Chrome AND not in GMod.
-  audioBtn.style.display = "none";
-
-  // GMod will flip __isGmod true after GameDetails is called; also keep it hidden if that happens later.
-  const shouldShow = isRealChromeDesktop() && !window.__isGmod;
-  if (!shouldShow) return;
-
-  audioBtn.style.display = "block";
-  setAudioBtnState(false);
-
-  audioBtn.addEventListener("click", async () => {
-    const enabled = audioBtn.getAttribute("aria-pressed") === "true";
-
-    if (enabled) {
-      v.muted = true;
-      setAudioBtnState(false);
-      try { await v.play(); } catch {}
-      return;
-    }
-
-    v.muted = false;
-    v.volume = 1.0;
-    try {
-      await v.play();
-      setAudioBtnState(true);
-    } catch {
-      v.muted = true;
-      setAudioBtnState(false);
-      try { await v.play(); } catch {}
-    }
-  });
+  return false;
 }
 
 function initVideo() {
   if (!v) return;
 
-  // Assign randomized video, then force a load cycle.
+  // Assign randomized video and force a load cycle.
   v.src = pickVideo();
-  try { v.load(); } catch {}
+  try { v.load(); } catch (e) {}
 
-  // Always attempt muted playback and show start gate only if needed.
-  forceStartGateIfNeeded();
+  v.loop = true;
+  v.playsInline = true;
 
-  // Audio toggle is dev/testing only; will be suppressed in GMod once GameDetails fires.
-  setupAudioToggle();
+  // ATTEMPT: autoplay UNMUTED (often blocked by Chromium policy)
+  v.muted = false;
+  v.volume = 0.4;
+
+  // Some embedded builds behave better if reflected as attributes
+  v.setAttribute("playsinline", "");
+  v.setAttribute("autoplay", "");
+
+  tryStartPlayback();
 }
 
+function tryStartPlayback() {
+  var p = null;
+
+  try {
+    p = v.play();
+  } catch (e) {
+    p = null;
+  }
+
+  // If promise-capable, use it. Otherwise check paused after a beat.
+  if (p && typeof p.then === "function") {
+    p.then(function () {
+      hideGate();
+    }).catch(function () {
+      showGate();
+    });
+  } else {
+    setTimeout(function () {
+      if (v.paused) showGate();
+      else hideGate();
+    }, 250);
+  }
+}
+
+function showGate() {
+  if (!startGate) return;
+
+  // Chromium blocked unmuted autoplay — user gesture required.
+  startGate.style.display = "block";
+
+  startGate.onclick = function () {
+    // Try again, still unmuted
+    try {
+      v.muted = false;
+      v.volume = 0.4;
+      v.play();
+    } catch (e) {}
+
+    // Hide if it actually started
+    setTimeout(function () {
+      if (!v.paused) hideGate();
+    }, 100);
+  };
+}
+
+function hideGate() {
+  if (!startGate) return;
+  startGate.style.display = "none";
+}
+
+// ==============================
+// Boot
+// ==============================
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initVideo);
 } else {
