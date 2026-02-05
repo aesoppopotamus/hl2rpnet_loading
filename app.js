@@ -26,9 +26,42 @@ window.SetFilesNeeded = function(needed) {
 setProgress(0.02);
 
 
+
 const v = document.getElementById("bg");
 const startGate = document.getElementById("startGate");
 const btn = document.getElementById("audioToggle");
+
+// Keep this static. Do not generate dynamically.
+const VIDEOS = [
+  "assets/checkpointloop.mp4",
+  "assets/trainrideloop.mp4",
+  "assets/checkpointloop2.mp4",
+];
+
+// Pick once per page load
+const pick = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
+v.src = pick;
+
+// Always start muted
+v.muted = true;
+v.volume = 1.0;
+
+// Try hard to start playback (reuses your working pattern)
+async function startMuted() {
+  try { await v.play(); } catch {}
+  if (!v.paused) return;
+
+  await new Promise(r => {
+    const done = () => r();
+    v.addEventListener("loadeddata", done, { once: true });
+    v.addEventListener("canplay", done, { once: true });
+    setTimeout(done, 800);
+  });
+
+  try { await v.play(); } catch {}
+}
+
+startMuted();
 
 function isChromeBrowser() {
   const ua = navigator.userAgent || "";
