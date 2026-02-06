@@ -56,7 +56,7 @@ window.SetStatusChanged = function (s) {
   var t0 = new Date().getTime();
 
   function tick() {
-    var t = (new Date().getTime() - t0) / 1400;
+    var t = (new Date().getTime() - t0) / 3200;
     var p = t % 1;
     scanEl.style.width = Math.round(p * 100) + "%";
     setTimeout(tick, 33);

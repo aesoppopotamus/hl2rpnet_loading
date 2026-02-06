@@ -13,6 +13,8 @@
 
   <!-- Vignette overlay -->
   <div class="vignette" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
 
   <!-- Click gate (only shown if unmuted autoplay is blocked) -->
   <div id="startGate" class="startGate" style="display:none;">
@@ -45,12 +47,12 @@
       <!-- info grid -->
       <div class="terminal__grid">
         <div class="kv">
-          <div class="k">UPLINK</div>
+          <div class="k">UPLINK-ID</div>
           <div id="node" class="v">—</div>
         </div>
       
         <div class="kv">
-          <div class="k">SECTOR</div>
+          <div class="k">SECTOR GRID</div>
           <div id="sector" class="v">—</div>
         </div>
       
@@ -60,22 +62,17 @@
         </div>
       
         <div class="kv">
-          <div class="k">CAP</div>
+          <div class="k">THRESHOLD</div>
           <div id="cap" class="v">—</div>
         </div>
       </div>
-    
+
       <!-- bulletin line -->
       <div class="terminal__bulletin">
         <div class="k">BULLETIN</div>
         <div id="status" class="terminal__status">
           CONNECTION INITIALIZATION…
         </div>
-      </div>
-    
-      <!-- cosmetic scan bar -->
-      <div class="terminal__bar" aria-hidden="true">
-        <div id="scan" class="terminal__barFill"></div>
       </div>
     </section>
   </main>

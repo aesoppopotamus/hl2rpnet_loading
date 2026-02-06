@@ -29,7 +29,7 @@ html,body{
   width:100%;
   height:100%;
   object-fit:cover;
-  opacity:0.80;
+  opacity:0.5S;
   filter:saturate(.95) contrast(1.05);
   background:#000;
 }
@@ -50,6 +50,42 @@ html,body{
       rgba(0,0,0,.05),
       rgba(0,0,0,.20)
     );
+}
+
+.scanlines{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+
+  /* subtle horizontal lines + a faint drifting noise sheen */
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.025) 0px,
+      rgba(255,255,255,.025) 1px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0) 4px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,.05),
+      rgba(0,0,0,0),
+      rgba(0,0,0,.05)
+    );
+
+  opacity:.26;
+  mix-blend-mode: overlay;
+}
+
+/* optional: slight vertical drift so it feels “alive” */
+@keyframes scanDrift{
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(6px); }
+}
+
+.scanlines{
+  animation: scanDrift 6s linear infinite;
 }
 
 
@@ -215,25 +251,10 @@ html,body{
   text-overflow:ellipsis;
 }
 
-/* bottom cosmetic scan line (driven by app.js) */
-.terminal__bar{
-  margin-top:10px;
-  height:2px;
-  background: rgba(231,238,252,.10);
-  border-radius:999px;
-  overflow:hidden;
-}
-
-.terminal__barFill{
-  height:100%;
-  width:0%;
-  background: rgba(140,255,255,.85);
-}
-
 .terminal__mark{
   position:absolute;
   right:150px;
-  bottom:22px;
+  bottom:10px;
   width:120px;
   height:auto;
   opacity:.15;
@@ -251,7 +272,23 @@ html,body{
 }
 
 
-/* Mapped dystopian status (main) */
+.terminal::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.08;
+  background-image:
+    repeating-linear-gradient(to bottom,
+      rgba(255,255,255,.06) 0px,
+      rgba(255,255,255,.06) 1px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0) 5px);
+  mix-blend-mode: overlay;
+}
+
+
+/* Mapped status (main) */
 .grid{
   display:grid;
   grid-template-columns: 1fr 1fr;
