@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -12,35 +11,31 @@
   <!-- Background video -->
   <video id="bg" preload="auto"></video>
 
-  <!-- Dark overlay / vignette -->
+  <!-- Vignette overlay -->
   <div class="vignette" aria-hidden="true"></div>
 
-  <!-- Click gate (only shown if autoplay is blocked) -->
+  <!-- Click gate (only shown if unmuted autoplay is blocked) -->
   <div id="startGate" class="startGate" style="display:none;">
     <div class="startGate__card">
-      <div class="startGate__title">Click to enable sound</div>
-      <div class="startGate__sub">Autoplay with audio is blocked on many clients.</div>
+      <div class="startGate__title">CLICK TO ENABLE AUDIO</div>
+      <div class="startGate__sub">Audio autoplay is restricted on some clients.</div>
     </div>
   </div>
 
-  <!-- UI -->
+  <!-- Bottom-aligned HUD -->
   <main class="wrap">
     <section class="card" role="status" aria-live="polite">
+
       <header class="top">
-        <h1 class="title">Joining server…</h1>
-        <div class="meta">
-          <div id="status" class="status">Initializing…</div>
-        </div>
+        <h1 class="title">CONNECTION INITIALIZATION</h1>
       </header>
 
-      <div class="bar" aria-label="Loading progress">
-        <div id="fill" class="bar__fill"></div>
+      <div id="status" class="status">PROCESSING…</div>
+
+      <div class="topbar">
+        <div id="fill" class="topbar__fill"></div>
       </div>
 
-      <div class="barline">
-        <div class="hint">If this is blank, HTML is blocked client-side.</div>
-        <div class="pct" id="pctLabel"> </div>
-      </div>
     </section>
   </main>
 

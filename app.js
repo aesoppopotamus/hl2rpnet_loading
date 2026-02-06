@@ -4,11 +4,42 @@
 var fill = document.getElementById("fill");
 var statusEl = document.getElementById("status");
 
+// ADD: status mapping helpers (minimal)
+function norm(s) {
+  return (s || "").toLowerCase();
+}
+
+function mapStatus(raw) {
+  var s = raw || "";
+  var n = norm(s);
+
+  if (n.indexOf("retrieving server info") !== -1) return "HANDSHAKE…";
+  if (n.indexOf("sending client info") !== -1) return "IDENTITY SUBMITTED…";
+  if (n.indexOf("receiving client info") !== -1) return "IDENTITY CONFIRMED…";
+  if (n.indexOf("signon") !== -1) return "SESSION NEGOTIATION…";
+
+  if (n.indexOf("workshop") !== -1) return "ASSET INTAKE…";
+  if (n.indexOf("downloading") !== -1) return "ASSET INTAKE…";
+  if (n.indexOf("mounting") !== -1) return "ASSEMBLY…";
+  if (n.indexOf("precaching") !== -1) return "STAGING…";
+
+  if (n.indexOf("starting lua") !== -1) return "RUNTIME INITIALIZING…";
+  if (n.indexOf("lua") !== -1) return "RUNTIME INITIALIZING…";
+
+  if (n.indexOf("sending") !== -1) return "UPLINK…";
+  if (n.indexOf("receiving") !== -1) return "DOWNLINK…";
+
+  return s || "PROCESSING…";
+}
+
 function setProgress(p) {
   if (!fill) return;
   if (p < 0) p = 0;
   if (p > 1) p = 1;
-  fill.style.width = Math.round(p * 100) + "%";
+
+  // Never show 100% until it actually finishes
+  var pct = Math.floor(p * 98) + 2; // 2%..100% (but not visually “done” too early)
+  fill.style.width = pct + "%";
 }
 
 var filesTotal = 0;
@@ -23,7 +54,9 @@ window.GameDetails = function () {
 };
 
 window.SetStatusChanged = function (s) {
-  if (statusEl) statusEl.textContent = s || "Loading…";
+  // CHANGE: apply mapping
+  var mapped = mapStatus(s);
+  if (statusEl) statusEl.textContent = mapped || "LOADING…";
 };
 
 window.SetFilesTotal = function (total) {

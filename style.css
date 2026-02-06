@@ -5,8 +5,12 @@
   --panel:rgba(10,14,24,.62);
   --text:#e7eefc;
   --muted:rgba(231,238,252,.70);
+  --muted2:rgba(231,238,252,.45);
   --accent:#7aa7ff;
-  --barbg:rgba(231,238,252,.18);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 html,body{
@@ -37,77 +41,91 @@ html,body{
   pointer-events:none;
   background:
     radial-gradient(70% 70% at 50% 45%, rgba(0,0,0,.15), rgba(0,0,0,.78)),
-    linear-gradient(to bottom, rgba(0,0,0,.10), rgba(0,0,0,.65));
+    linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,.72));
 }
 
-/* Center card */
+/* Layout container */
 .wrap{
   position:relative;
   z-index:2;
   height:100%;
-  display:grid;
-  place-items:center;
   padding:32px;
 }
 
+/* ===== Bottom-aligned minimalist HUD =====
+   Goal: align with GMod's native loading UI near bottom-right.
+   We keep our UI bottom-left, low-profile.
+*/
 .card{
-  width:min(820px,100%);
-  background:var(--panel);
-  border:1px solid rgba(231,238,252,.12);
-  border-radius:18px;
-  box-shadow:0 18px 60px rgba(0,0,0,.45);
+  position:absolute;
+  left:32px;
+  bottom:32px;
+
+  width: min(820px, calc(100vw - 64px)); /* hard clamp to viewport */
+  max-width: 820px;
+
+  background:rgba(10,14,24,.45);
+  border:1px solid rgba(231,238,252,.10);
+  border-radius:14px;
+  box-shadow:0 14px 50px rgba(0,0,0,.40);
   backdrop-filter: blur(10px);
-  padding:22px 22px 18px;
+  padding:14px 16px 12px;
+
+  box-sizing:border-box; /* prevents padding from pushing width off-screen */
 }
 
+/* Header row: title on left, raw status on right if you keep it */
 .top{
   display:flex;
   align-items:baseline;
   justify-content:space-between;
   gap:16px;
-  margin-bottom:14px;
+  margin:0 0 8px 0;
 }
 
 .title{
-  font-size:18px;
-  letter-spacing:.2px;
+  font-size:13px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
   margin:0;
+  color:var(--muted);
 }
 
+/* Mapped dystopian status (main) */
 .status{
   font-size:14px;
-  color:var(--muted);
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:rgba(231,238,252,.92);
   min-height:18px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-/* Progress bar */
-.bar{
-  height:10px;
-  background:var(--barbg);
+/* Thin progress line (non-competing) */
+.topbar{
+  height:3px;
+  background:rgba(231,238,252,.10);
   border-radius:999px;
   overflow:hidden;
-  border:1px solid rgba(231,238,252,.10);
 }
 
-.bar__fill{
+.topbar__fill{
   height:100%;
   width:2%;
-  background: linear-gradient(90deg, var(--accent), rgba(122,167,255,.45));
-  border-radius:999px;
+  background:rgba(122,167,255,.85);
   transition: width 180ms ease;
 }
 
-.barline{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  margin-top:10px;
-  font-size:12px;
-  color:var(--muted);
-}
-
+/* Optional: micro hint line under bar */
 .hint{
-  opacity:.85;
+  margin-top:6px;
+  font-size:11px;
+  color:var(--muted2);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 /* Click gate overlay */
