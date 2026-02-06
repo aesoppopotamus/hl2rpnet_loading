@@ -102,22 +102,32 @@ html,body{
 ========================= */
 
 .terminal{
-  position: fixed;
   color: rgba(231,238,252,.92);
+  overflow:hidden;
 }
 
-#termBg{
+.termBg{
   position:absolute;
   inset:0;
-  width:100%;
-  height:100%;
   z-index:0;
   pointer-events:none;
-  opacity:.45; /* if you want global fade */
+  opacity:.85; /* overall strength of the teal plate */
+
+  /* “bright teal” plate + soft bloom + dark tuck */
+  background:
+    radial-gradient(140% 160% at 30% 40%,
+      rgba(140,255,255,.24) 0%,
+      rgba(90,220,230,.14) 35%,
+      rgba(0,0,0,.55) 72%,
+      rgba(0,0,0,.70) 100%),
+    linear-gradient(135deg,
+      rgba(0,18,24,.55),
+      rgba(0,0,0,.62));
 }
 
-.termContent {
-  z-index: 2;
+.termContent{
+  position:relative;
+  z-index:2;
 }
 
 /* =========================
@@ -191,7 +201,7 @@ html,body{
   position:absolute;
   inset:0;
   pointer-events:none;
-  z-index:2;
+  z-index:1;
   opacity:.14;
 }
 
