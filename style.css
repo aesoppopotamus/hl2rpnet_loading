@@ -13,8 +13,6 @@
   --teal: rgba(140,255,255,.85);
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-
 html,body{
   height:100%;
   margin:0;
