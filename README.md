@@ -1,5 +1,5 @@
 # CITY 77
-A custom Garry’s Mod loading screen built for City 77 (Vladivostok) — a post-war reclamation and resource-processing hub within the Half-Life 2 universe.
+A custom Garry’s Mod loading screen built for City 77 (Vladivostok), a post-war reclamation and resource-processing hub within the Half-Life 2 universe.
 
 The design goal is minimalism with diegetic presentation.
 
