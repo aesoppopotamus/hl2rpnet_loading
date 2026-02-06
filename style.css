@@ -103,37 +103,38 @@ html,body{
   z-index: 2;
 }
 
-/* Shared layer base */
-.tLayer{
+.terminal-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-/* Glow/gradient layer */
-.tGlow{
-  z-index: 0;
-  opacity: .75;
+.terminal-layer.glow {
   background:
-    radial-gradient(120% 160% at 25% 40%, rgba(90,200,210,.20), transparent 58%),
-    radial-gradient(90% 130% at 65% 30%, rgba(20,210,212,.14), transparent 62%),
-    linear-gradient(135deg, rgba(0,0,0,.22), rgba(0,0,0,.55));
+    radial-gradient(
+      140% 160% at 30% 40%,
+      rgba(90, 220, 255, 0.18),
+      rgba(0, 0, 0, 0.55) 70%
+    );
+  opacity: 1;
 }
 
-/* Scanline/noise layer  */
-.tNoise{
-  z-index: 1;
-  opacity: .08;
+.terminal-layer.noise {
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(255,255,255,.06) 0px,
-      rgba(255,255,255,.06) 1px,
+      rgba(255,255,255,0.04) 0px,
+      rgba(255,255,255,0.04) 1px,
       transparent 2px,
       transparent 5px
     );
-  mix-blend-mode: overlay;
+  opacity: 0.12;
 }
+
+.terminal-content {
+  z-index: 2;
+}
+
 
 .terminal__frameTop,
 .terminal__frameBottom{
