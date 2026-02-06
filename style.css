@@ -232,11 +232,11 @@ html,body{
 
 .terminal__mark{
   position:absolute;
-  right:18px;
-  bottom:14px;
+  right:150px;
+  bottom:22px;
   width:120px;
   height:auto;
-  opacity:.08;
+  opacity:.15;
   filter: blur(.2px);
   mix-blend-mode: screen;
   pointer-events:none;
