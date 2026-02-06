@@ -63,7 +63,6 @@ html,body{
     );
 
   opacity:.18;
-  mix-blend-mode: normal;
   animation: scanDrift 6s linear infinite;
 }
 
@@ -97,6 +96,7 @@ html,body{
 /* ===== Terminal ===== */
 .terminal{
   color: rgba(231,238,252,.92);
+  filter: brightness(1.06) contrast(1.05);
 }
 
 /* terminal texture layer */
@@ -289,7 +289,6 @@ html,body{
   height:auto;
   opacity:.20;
   filter: blur(.2px);
-  mix-blend-mode: normal; /* CEF-safe */
   pointer-events:none;
   user-select:none;
 }
