@@ -240,207 +240,238 @@
 
   // ==============================
   // CEF-safe terminal background (canvas)
-  // - No pseudo-elements
-  // - No reliance on CSS gradients
   // ==============================
-  var FX = {
-    enabled: true,
-    fps: 30,
-    // teal bias / brightness
-    glowAlpha: 0.42,
-    shimmerAlpha: 0.14,
-    scanAlpha: 0.08,
-    bandAlpha: 0.05,
-    gritBase: 0.02,
-    vignette: 0.42,
-    multiplyDark: 0.10,
-    driftPxPerSec: 10,
-    shimmerPeriodMs: 4200
-  };
+  // ==============================
+// CEF-safe terminal background (canvas) — rewritten
+// Goals:
+// - CSS owns sizing/stacking (canvas is absolute inset:0; content sits above)
+// - JS only fits backing resolution + draws
+// - DPR forced to 1 for CEF/GMod stability
+// - No blend modes required
+// ==============================
 
-  function clamp(n, a, b) { return n < a ? a : (n > b ? b : n); }
+var FX = {
+  enabled: true,
+  fps: 30,
 
-  function ensureCanvas() {
-    if (!el.terminal) return null;
+  // palette / intensity
+  basePlate: 0.62,        // deep teal plate alpha
+  glowAlpha: 0.42,        // main radial bloom
+  glowMid: 0.65,          // mid stop multiplier
+  shimmerAlpha: 0.14,     // moving sheen
+  scanAlpha: 0.08,        // thin scanlines
+  bandAlpha: 0.05,        // wide bands
+  gritBase: 0.02,         // minimum sparkle alpha
+  vignette: 0.42,         // edge darkening
+  darkTuck: 0.10,         // final darkening pass (no multiply)
 
-    var c = document.getElementById("termBg");
-    if (c) return c;
+  // motion
+  driftPxPerSec: 10,
+  shimmerPeriodMs: 4200,
 
+  // force dpr for CEF
+  forceDpr: 1
+};
+
+function clamp(n, a, b) { return n < a ? a : (n > b ? b : n); }
+
+function ensureCanvasInTerminal() {
+  if (!el || !el.terminal) return null;
+
+  var c = document.getElementById("termBg");
+  if (!c) {
     c = document.createElement("canvas");
     c.id = "termBg";
     c.setAttribute("aria-hidden", "true");
-    c.style.position = "absolute"
-    c.style.inset = "0";
-    c.style.width = "100%";
-    c.style.height = "100%";
-    c.style.pointerEvents = "none";
-    c.style.zIndex = "0";
-    c.style.opacity = ".3";
-
-    // Insert behind everything inside terminal
     el.terminal.insertBefore(c, el.terminal.firstChild);
-    return c;
   }
 
-  function sizeCanvas(canvas) {
-    if (!canvas || !el.terminal) return { w: 1, h: 1, dpr: 1 };
+  c.style.position = "absolute";
+  c.style.inset = "0";
+  c.style.width = "100%";
+  c.style.height = "100%";
+  c.style.pointerEvents = "none";
+  c.style.zIndex = "0";
 
-    var r = el.terminal.getBoundingClientRect();
-    var dpr = clamp(window.devicePixelRatio || 1, 1, 2);
-    var w = Math.max(1, Math.floor(r.width));
-    var h = Math.max(1, Math.floor(r.height));
-    var bw = Math.floor(w * dpr);
-    var bh = Math.floor(h * dpr);
+  return c;
+}
 
-    if (canvas.width !== bw || canvas.height !== bh) {
-      canvas.width = bw;
-      canvas.height = bh;
-      canvas._cssW = w;
-      canvas._cssH = h;
-      canvas._dpr = dpr;
-    }
-    return { w: w, h: h, dpr: dpr };
+function fitCanvasToTerminal(canvas) {
+  if (!canvas || !el || !el.terminal) return { w: 1, h: 1, dpr: 1 };
+
+  var r = el.terminal.getBoundingClientRect();
+
+  var dpr = FX.forceDpr || 1;
+
+  var cssW = Math.max(1, Math.round(r.width));
+  var cssH = Math.max(1, Math.round(r.height));
+
+  var bw = Math.max(1, Math.round(cssW * dpr));
+  var bh = Math.max(1, Math.round(cssH * dpr));
+
+  if (canvas.width !== bw || canvas.height !== bh) {
+    canvas.width = bw;
+    canvas.height = bh;
   }
 
-  function drawGlow(ctx, w, h, t) {
-    var cx = w * 0.32, cy = h * 0.40;
-  
-    // main bloom
-    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.95);
-    g.addColorStop(0.00, "rgba(140,255,255," + FX.glowAlpha + ")");
-    g.addColorStop(0.40, "rgba(80,220,230," + (FX.glowAlpha * 0.65) + ")");
-    g.addColorStop(1.00, "rgba(0,0,0,0)");
-  
-    // normal over (no blend mode)
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-  
-    // shimmer sweep
-    var phase = (t % FX.shimmerPeriodMs) / FX.shimmerPeriodMs;
-    var sx = -w * 0.6 + (w * 1.8) * phase;
-  
-    ctx.save();
-    ctx.globalAlpha = FX.shimmerAlpha;
-    ctx.translate(sx, 0);
-    ctx.transform(1, 0, -0.22, 1, 0, 0);
-  
-    var g2 = ctx.createLinearGradient(0, 0, w * 0.7, 0);
-    g2.addColorStop(0.0, "rgba(0,0,0,0)");
-    g2.addColorStop(0.5, "rgba(180,255,255,0.55)");
-    g2.addColorStop(1.0, "rgba(0,0,0,0)");
-    ctx.fillStyle = g2;
-    ctx.fillRect(0, 0, w * 0.7, h);
-    ctx.restore();
+  canvas._cssW = cssW;
+  canvas._cssH = cssH;
+  canvas._dpr = dpr;
+
+  return { w: cssW, h: cssH, dpr: dpr };
+}
+
+function drawBasePlate(ctx, w, h) {
+  ctx.fillStyle = "rgba(0, 18, 24, " + FX.basePlate + ")";
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawGlow(ctx, w, h, t) {
+  var cx = w * 0.32, cy = h * 0.40;
+
+  // main bloom (no blend mode)
+  var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.95);
+  g.addColorStop(0.00, "rgba(140,255,255," + FX.glowAlpha + ")");
+  g.addColorStop(0.40, "rgba(80,220,230," + (FX.glowAlpha * FX.glowMid) + ")");
+  g.addColorStop(1.00, "rgba(0,0,0,0)");
+
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  // shimmer sweep
+  var phase = (t % FX.shimmerPeriodMs) / FX.shimmerPeriodMs;
+  var sx = -w * 0.6 + (w * 1.8) * phase;
+
+  ctx.save();
+  ctx.globalAlpha = FX.shimmerAlpha;
+  ctx.translate(sx, 0);
+  ctx.transform(1, 0, -0.22, 1, 0, 0);
+
+  var g2 = ctx.createLinearGradient(0, 0, w * 0.7, 0);
+  g2.addColorStop(0.0, "rgba(0,0,0,0)");
+  g2.addColorStop(0.5, "rgba(180,255,255,0.55)");
+  g2.addColorStop(1.0, "rgba(0,0,0,0)");
+  ctx.fillStyle = g2;
+  ctx.fillRect(0, 0, w * 0.7, h);
+  ctx.restore();
+}
+
+function drawScan(ctx, w, h, drift) {
+  // thin lines
+  ctx.save();
+  ctx.globalAlpha = FX.scanAlpha;
+  ctx.fillStyle = "rgba(180,255,255,1)";
+  for (var y = (drift % 4); y < h; y += 4) ctx.fillRect(0, y, w, 1);
+  ctx.restore();
+
+  // wide bands
+  ctx.save();
+  ctx.globalAlpha = FX.bandAlpha;
+  ctx.fillStyle = "rgba(255,255,255,1)";
+  for (var y2 = (drift % 48); y2 < h; y2 += 48) ctx.fillRect(0, y2, w, 2);
+  ctx.restore();
+}
+
+function drawGrit(ctx, w, h) {
+  var n = Math.floor((w * h) / 6500);
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,1)";
+  for (var i = 0; i < n; i++) {
+    ctx.globalAlpha = (Math.random() * 0.05) + FX.gritBase;
+    ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1);
   }
+  ctx.restore();
+}
 
-  function drawScan(ctx, w, h, drift) {
-    ctx.save();
-    ctx.globalAlpha = FX.scanAlpha;
-    ctx.fillStyle = "rgba(180,255,255,1)";
-    for (var y = (drift % 4); y < h; y += 4) ctx.fillRect(0, y, w, 1);
-    ctx.restore();
+function drawVignette(ctx, w, h) {
+  var g = ctx.createRadialGradient(
+    w * 0.5, h * 0.45, Math.min(w, h) * 0.18,
+    w * 0.5, h * 0.45, Math.max(w, h) * 0.95
+  );
+  g.addColorStop(0.0, "rgba(0,0,0,0)");
+  g.addColorStop(0.6, "rgba(0,0,0,0.18)");
+  g.addColorStop(1.0, "rgba(0,0,0," + FX.vignette + ")");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+}
 
-    ctx.save();
-    ctx.globalAlpha = FX.bandAlpha;
-    ctx.fillStyle = "rgba(255,255,255,1)";
-    for (var y2 = (drift % 48); y2 < h; y2 += 48) ctx.fillRect(0, y2, w, 2);
-    ctx.restore();
-  }
+function drawDarkTuck(ctx, w, h) {
+  ctx.save();
+  ctx.globalAlpha = FX.darkTuck;
+  ctx.fillStyle = "rgba(0,0,0,1)";
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
 
-  function drawGrit(ctx, w, h) {
-    // Cheap sprinkle noise
-    var n = Math.floor((w * h) / 6500);
-    ctx.save();
-    for (var i = 0; i < n; i++) {
-      var a = (Math.random() * 0.05) + FX.gritBase;
-      ctx.globalAlpha = a;
-      ctx.fillStyle = "rgba(255,255,255,1)";
-      ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1);
-    }
-    ctx.restore();
-  }
+var fxState = {
+  canvas: null,
+  ctx: null,
+  drift: 0,
+  lastT: 0,
+  raf: null,
+  lastFrameAt: 0
+};
 
-  function drawVignette(ctx, w, h) {
-    var g = ctx.createRadialGradient(
-      w * 0.5, h * 0.45, Math.min(w, h) * 0.18,
-      w * 0.5, h * 0.45, Math.max(w, h) * 0.95
-    );
-    g.addColorStop(0.0, "rgba(0,0,0,0)");
-    g.addColorStop(0.6, "rgba(0,0,0,0.18)");
-    g.addColorStop(1.0, "rgba(0,0,0," + FX.vignette + ")");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-  }
+function renderFX(t) {
+  if (!FX.enabled || !fxState.canvas || !fxState.ctx) return;
 
-  function drawBasePlate(ctx, w, h) {
-    // Deep blue-green tint base
-    ctx.fillStyle = "rgba(0, 18, 24, 0.62)";
-    ctx.fillRect(0, 0, w, h);
-  }
-
-  var fxState = {
-    canvas: null,
-    ctx: null,
-    drift: 0,
-    lastT: 0,
-    raf: null
-  };
-
-  function renderFX(t) {
-    if (!FX.enabled || !fxState.ctx || !fxState.canvas) return;
-
-    var w = fxState.canvas._cssW || fxState.canvas.clientWidth || 1;
-    var h = fxState.canvas._cssH || fxState.canvas.clientHeight || 1;
-    var dpr = fxState.canvas._dpr || 1;
-
-    // drift
-    if (!fxState.lastT) fxState.lastT = t;
-    var dt = (t - fxState.lastT) / 1000;
-    fxState.lastT = t;
-    fxState.drift += dt * FX.driftPxPerSec;
-
-    var ctx = fxState.ctx;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-
-    drawBasePlate(ctx, w, h);
-    drawGlow(ctx, w, h, t);
-    drawScan(ctx, w, h, fxState.drift);
-    drawGrit(ctx, w, h);
-    drawVignette(ctx, w, h);
-
-    // gentle dark tuck without blend modes
-    ctx.save();
-    ctx.globalAlpha = FX.multiplyDark;
-    ctx.fillStyle = "rgba(0,0,0,1)";
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
-
-
+  // throttle to FX.fps (CEF can choke on full-rate RAF)
+  if (fxState.lastFrameAt && (t - fxState.lastFrameAt) < (1000 / FX.fps)) {
     fxState.raf = requestAnimationFrame(renderFX);
+    return;
   }
+  fxState.lastFrameAt = t;
 
-  function initTerminalFX() {
-    if (!FX.enabled || !el.terminal) return;
-    try { el.terminal.style.overflow = "hidden"; } catch (e) {}
+  var w = fxState.canvas._cssW || 1;
+  var h = fxState.canvas._cssH || 1;
+  var dpr = fxState.canvas._dpr || 1;
 
-    var c = ensureCanvas();
-    if (!c) return;
+  if (!fxState.lastT) fxState.lastT = t;
+  var dt = (t - fxState.lastT) / 1000;
+  fxState.lastT = t;
+  fxState.drift += dt * FX.driftPxPerSec;
 
-    fxState.canvas = c;
-    fxState.ctx = c.getContext("2d", { alpha: true, desynchronized: true });
+  var ctx = fxState.ctx;
 
-    sizeCanvas(c);
-    setTimeout(function () { sizeCanvas(c); }, 60);
-    setTimeout(function () { sizeCanvas(c); }, 220);
+  // draw in CSS pixels; scale once for DPR (we force 1 anyway)
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
 
-    window.addEventListener("resize", function () { sizeCanvas(c); });
+  drawBasePlate(ctx, w, h);
+  drawGlow(ctx, w, h, t);
+  drawScan(ctx, w, h, fxState.drift);
+  drawGrit(ctx, w, h);
+  drawVignette(ctx, w, h);
+  drawDarkTuck(ctx, w, h);
 
-    if (fxState.raf) cancelAnimationFrame(fxState.raf);
-    fxState.lastT = 0;
-    fxState.drift = 0;
-    fxState.raf = requestAnimationFrame(renderFX);
-  }
+  fxState.raf = requestAnimationFrame(renderFX);
+}
+
+function initTerminalFX() {
+  if (!FX.enabled || !el || !el.terminal) return;
+
+  // Do not set position on .terminal here. You already found that breaks layout.
+  try { el.terminal.style.overflow = "hidden"; } catch (e) {}
+
+  var c = ensureCanvasInTerminal();
+  if (!c) return;
+
+  fxState.canvas = c;
+  fxState.ctx = c.getContext("2d", { alpha: true, desynchronized: true });
+
+  fitCanvasToTerminal(c);
+  setTimeout(function () { fitCanvasToTerminal(c); }, 50);
+  setTimeout(function () { fitCanvasToTerminal(c); }, 250);
+
+  window.addEventListener("resize", function () { fitCanvasToTerminal(c); });
+
+  if (fxState.raf) cancelAnimationFrame(fxState.raf);
+  fxState.lastT = 0;
+  fxState.drift = 0;
+  fxState.lastFrameAt = 0;
+  fxState.raf = requestAnimationFrame(renderFX);
+}
+
 
   // ==============================
   // Boot
