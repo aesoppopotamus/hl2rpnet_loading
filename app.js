@@ -115,7 +115,6 @@ var v = document.getElementById("bg");
 var startGate = document.getElementById("startGate");
 
 var VIDEOS = [
-  "assets/plaza.webm",
   "assets/train1.webm",
   "assets/citadel.webm",
   "assets/cp1.webm",
