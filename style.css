@@ -104,14 +104,8 @@ html,body{
   content:"";
   position:absolute;
   inset:0;
-  pointer-events:none;
   z-index:0;
-  opacity:.75;
-
-  background:
-    radial-gradient(120% 160% at 25% 40%, var(--teal1), transparent 58%),
-    radial-gradient(90% 130% at 65% 30%, var(--teal2), transparent 62%),
-    linear-gradient(135deg, rgba(0,0,0,.22), rgba(0,0,0,.55));
+  background: rgba(255,0,0,.35);
 }
 
 /* subtle internal scanline noise */
