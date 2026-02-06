@@ -1,5 +1,6 @@
-/* style.css */
-
+/* =========================
+   Variables / Reset
+========================= */
 :root{
   --bg:#0b0f19;
   --text:#e7eefc;
@@ -9,8 +10,7 @@
   --glass: rgba(10,14,24,.38);
   --glassBorder: rgba(231,238,252,.10);
 
-  --teal1: rgba(90,200,210,.20);
-  --teal2: rgba(20,210,212,.14);
+  --teal: rgba(140,255,255,.85);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -24,27 +24,28 @@ html,body{
   overflow:hidden;
 }
 
-/* Background video */
+/* =========================
+   Background video + overlays
+========================= */
 #bg{
   position:fixed;
   inset:0;
   width:100%;
   height:100%;
   object-fit:cover;
-  filter:saturate(.95) contrast(1.05);
   background:#000;
   z-index:0;
+  filter:saturate(.95) contrast(1.05);
 }
 
-/* Overlays */
 .vignette{
   position:fixed;
   inset:0;
   pointer-events:none;
   z-index:1;
   background:
-    radial-gradient(70% 70% at 50% 45%, rgba(0,0,0,.08), rgba(0,0,0,.20)),
-    linear-gradient(to bottom, rgba(0,0,0,.05), rgba(0,0,0,.20));
+    radial-gradient(70% 70% at 50% 45%, rgba(0,0,0,.10), rgba(0,0,0,.35)),
+    linear-gradient(to bottom, rgba(0,0,0,.06), rgba(0,0,0,.25));
 }
 
 .scanlines{
@@ -52,7 +53,7 @@ html,body{
   inset:0;
   pointer-events:none;
   z-index:2;
-
+  opacity:.14;
   background:
     repeating-linear-gradient(
       to bottom,
@@ -61,8 +62,6 @@ html,body{
       transparent 2px,
       transparent 4px
     );
-
-  opacity:.18;
   animation: scanDrift 6s linear infinite;
 }
 
@@ -71,55 +70,63 @@ html,body{
   100% { transform: translateY(6px); }
 }
 
-/* Layout container */
+/* =========================
+   HUD container
+========================= */
 .wrap{
-  z-index:2;
-  height:100%;
-  padding:32px;
+  position:fixed;
+  inset:0;
+  z-index:3; /* above overlays */
+  pointer-events:none; /* HUD is not interactive */
 }
 
 .card{
-  position:fixed;     /* not absolute */
+  position:fixed;
   left:32px;
   bottom:32px;
+
   width:calc(100vw - 64px);
   max-width:900px;
+
   border-radius:16px;
   padding:30px 20px 30px;
+
   overflow:hidden;
-  background:rgba(10,14,24,.38);
-  border:1px solid rgba(231,238,252,.10);
+  background:var(--glass);
+  border:1px solid var(--glassBorder);
   box-shadow:0 16px 60px rgba(0,0,0,.35);
-  z-index:10;         /* above vignette/scanlines */
+
+  z-index:4;
 }
 
-/* ===== Terminal ===== */
+/* =========================
+   Terminal core (robust base)
+========================= */
 .terminal{
   color: rgba(231,238,252,.92);
-  filter: brightness(1.06) contrast(1.05);
 }
 
-.terminal > *:not(.tLayer){
-  z-index: 2;
+/* deterministic layers */
+.terminal-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
 }
 
-.terminal-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.terminal-layer.glow{ z-index:0; opacity:.55; }
+.terminal-layer.noise{ z-index:1; opacity:.10; }
+
+.terminal-content{
+  z-index:2;
+  pointer-events:none;
 }
 
-.terminal-layer.glow {
-  background:
-    radial-gradient(
-      140% 160% at 30% 40%,
-      rgba(90, 220, 255, 0.18),
-      rgba(0, 0, 0, 0.55) 70%
-    );
-  opacity: 1;
+/* fallback if gradients are unsupported: dark base tint */
+.terminal-layer.glow{
+  background: rgba(20,40,55,.35);
 }
 
-.terminal-layer.noise {
+.terminal-layer.noise{
   background:
     repeating-linear-gradient(
       to bottom,
@@ -128,109 +135,128 @@ html,body{
       transparent 2px,
       transparent 5px
     );
-  opacity: 0.12;
 }
 
-.terminal-content {
-  z-index: 2;
+/* Enable nicer glow only if gradients are supported */
+@supports (background: radial-gradient(circle at 50% 50%, #000, transparent)) {
+  .terminal-layer.glow{
+    background:
+      radial-gradient(
+        140% 160% at 30% 40%,
+        rgba(90, 220, 255, 0.18),
+        rgba(0, 0, 0, 0.55) 70%
+      );
+    opacity:1;
+  }
 }
 
-
+/* =========================
+   Frame images
+========================= */
 .terminal__frameTop,
 .terminal__frameBottom{
   position:absolute;
-  left:-8px;
+  left:2px;
   right:-8px;
-  height: 60px;
+  height:60px;
   pointer-events:none;
-  opacity:.3;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  opacity:.30;
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+  z-index:3;
 }
 
 .terminal__frameTop{
-  top:0px;
-  left:2px;
-  background-image: url("assets/bordertop.png");
+  top:0;
+  background-image:url("assets/bordertop.png");
 }
 
 .terminal__frameBottom{
-  bottom:0px;
-  left:2px;
-  background-image: url("assets/borderbottom.png");
+  bottom:0;
+  background-image:url("assets/borderbottom.png");
 }
 
-/* right-side number rain column */
+/* =========================
+   Right-side number rain
+========================= */
 .terminal__rain{
   position:absolute;
   top:30px;
   bottom:30px;
   right:14px;
   width:220px;
+
   pointer-events:none;
+  z-index:3;
+
   opacity:.22;
   overflow:hidden;
-  border-left: 1px solid rgba(231,238,252,.10);
-  padding-left:12px;
 
-  /* fade top/bottom so it feels embedded */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  border-left:1px solid rgba(231,238,252,.10);
+  padding-left:12px;
 }
 
 .terminal__rain pre{
   margin:0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 11px;
-  line-height: 12px;
-  letter-spacing: .12em;
+  font-size:11px;
+  line-height:12px;
+  letter-spacing:.12em;
   color: rgba(140,255,255,.95);
-  text-shadow: 0 0 10px rgba(140,255,255,.12);
-  white-space: pre;
+  white-space:pre;
 }
 
-/* moving sweep shimmer */
+/* mask fade is optional; CEF may ignore it. keep it behind @supports */
+@supports ((mask-image: linear-gradient(#000, transparent)) or (-webkit-mask-image: linear-gradient(#000, transparent))) {
+  .terminal__rain{
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  }
+}
+
+/* =========================
+   Sweep shimmer
+========================= */
 .terminal__scan{
   position:absolute;
-  left:-30%;
-  top:0;
-  width:30%;
-  height:100%;
+  inset:0;
   pointer-events:none;
-  z-index:1;
-  opacity:.16;
-
-  background: linear-gradient(to right, transparent, rgba(140,255,255,.45), transparent);
-  transform: skewX(-18deg);
-  animation: terminalSweep 4.2s linear infinite;
-}
-
-@keyframes terminalSweep{
-  0%   { transform: translateX(-10%) skewX(-18deg); }
-  100% { transform: translateX(460%) skewX(-18deg); }
-}
-
-/* ensure content sits above texture layers */
-.terminal__sub,
-.terminal__top,
-.terminal__grid,
-.terminal__bulletin,
-.terminal__mark{
-  position:relative;
   z-index:2;
+  opacity:.14;
 }
 
+@supports (background: linear-gradient(to right, transparent, #fff, transparent)) {
+  .terminal__scan{
+    left:-30%;
+    top:0;
+    width:30%;
+    height:100%;
+    background: linear-gradient(to right, transparent, rgba(140,255,255,.45), transparent);
+    transform: skewX(-18deg);
+    animation: terminalSweep 4.2s linear infinite;
+  }
+
+  @keyframes terminalSweep{
+    0%   { transform: translateX(-10%) skewX(-18deg); }
+    100% { transform: translateX(460%) skewX(-18deg); }
+  }
+}
+
+/* =========================
+   Text blocks
+========================= */
 .terminal__sub{
   font-size:8px;
   letter-spacing:.18em;
   text-transform:uppercase;
   color: rgba(231,238,252,.35);
+  margin-bottom:2px;
 }
 
 .terminal__top{
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
   gap:12px;
   margin: 2px 0 10px;
 }
@@ -292,16 +318,18 @@ html,body{
   width:120px;
   height:auto;
   opacity:.20;
-  filter: blur(.2px);
   pointer-events:none;
   user-select:none;
+  z-index:3;
 }
 
-/* Click gate overlay */
+/* =========================
+   Click gate
+========================= */
 .startGate{
   position:fixed;
   inset:0;
-  z-index:10;
+  z-index:20;
   display:grid;
   place-items:center;
   background: rgba(0,0,0,.55);
@@ -315,6 +343,7 @@ html,body{
   padding:18px 18px 14px;
   text-align:center;
   box-shadow: 0 18px 60px rgba(0,0,0,.55);
+  pointer-events:auto;
 }
 
 .startGate__title{
