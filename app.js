@@ -78,6 +78,7 @@ var v = document.getElementById("bg");
 var startGate = document.getElementById("startGate");
 
 var VIDEOS = [
+  "assets/plaza.webm",
   "assets/train2.webm",
 ];
 
