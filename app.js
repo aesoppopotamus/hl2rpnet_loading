@@ -116,12 +116,15 @@ var startGate = document.getElementById("startGate");
 
 var VIDEOS = [
   "assets/plaza.webm",
-  "assets/train2.webm",
+  "assets/train1.webm",
   "assets/citadel.webm",
   "assets/cp1.webm",
   "assets/c17.webm",
   "assets/hideout.webm",
   "assets/street.webm",
+  "assets/cm1.webm",
+  "assets/novabreen1.webm",
+  "assets/ruinbreen1.webm",
 ];
 
 function pickVideo() {

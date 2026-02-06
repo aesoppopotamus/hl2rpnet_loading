@@ -9,9 +9,14 @@ City 77 (Vladivostok) is a post-Portal Storm industrial reclamation zone activat
 
 ## Media Credits
 
-Some background video loops used during development and presentation include SFM animation footage by MoonRealis
+Third-Party Media Acknowledgments
+
+The following content creators’ work has been referenced for visual inspiration or demonstration purposes in this project’s loader assets:
+
+MoonRealis — SFM animation and cinematic visuals
 https://www.youtube.com/@moonrealis/videos
 
-All such footage remains the intellectual property of its original creator.
+TheParryGod — visual and animation content used as stylistic reference
+https://www.youtube.com/@TheParryGod
 
-These assets are included with attribution and will be removed or replaced immediately upon request.
+All such media is the intellectual property of their respective creators. This project does not claim ownership of third-party content, and such content is included only for community reference or demonstration. Any use of third-party media will be removed promptly upon request by the rights holder.
