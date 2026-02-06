@@ -247,15 +247,15 @@
     enabled: true,
     fps: 30,
     // teal bias / brightness
-    glowAlpha: 0.24,
-    shimmerAlpha: 0.10,
-    scanAlpha: 0.10,
-    bandAlpha: 0.06,
-    gritBase: 0.03,
-    vignette: 0.52,
-    multiplyDark: 0.22,
+    glowAlpha: 0.42,
+    shimmerAlpha: 0.14,
+    scanAlpha: 0.08,
+    bandAlpha: 0.05,
+    gritBase: 0.02,
+    vignette: 0.42,
+    multiplyDark: 0.10,
     driftPxPerSec: 10,
-    shimmerPeriodMs: 4300
+    shimmerPeriodMs: 4200
   };
 
   function clamp(n, a, b) { return n < a ? a : (n > b ? b : n); }
@@ -269,13 +269,13 @@
     c = document.createElement("canvas");
     c.id = "termBg";
     c.setAttribute("aria-hidden", "true");
-    c.style.position = "absolute";
+    c.style.position = "absolute"
     c.style.inset = "0";
     c.style.width = "100%";
     c.style.height = "100%";
     c.style.pointerEvents = "none";
     c.style.zIndex = "0";
-    c.style.opacity = "1";
+    c.style.opacity = ".3";
 
     // Insert behind everything inside terminal
     el.terminal.insertBefore(c, el.terminal.firstChild);
@@ -303,29 +303,27 @@
   }
 
   function drawGlow(ctx, w, h, t) {
-    // Additive teal bloom + subtle wash
     var cx = w * 0.32, cy = h * 0.40;
-
+  
+    // main bloom
     var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.95);
     g.addColorStop(0.00, "rgba(140,255,255," + FX.glowAlpha + ")");
-    g.addColorStop(0.35, "rgba(80,220,230," + (FX.glowAlpha * 0.80) + ")");
+    g.addColorStop(0.40, "rgba(80,220,230," + (FX.glowAlpha * 0.65) + ")");
     g.addColorStop(1.00, "rgba(0,0,0,0)");
-
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
+  
+    // normal over (no blend mode)
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    ctx.restore();
-
-    // Shimmer sweep
+  
+    // shimmer sweep
     var phase = (t % FX.shimmerPeriodMs) / FX.shimmerPeriodMs;
     var sx = -w * 0.6 + (w * 1.8) * phase;
-
+  
     ctx.save();
     ctx.globalAlpha = FX.shimmerAlpha;
     ctx.translate(sx, 0);
     ctx.transform(1, 0, -0.22, 1, 0, 0);
-
+  
     var g2 = ctx.createLinearGradient(0, 0, w * 0.7, 0);
     g2.addColorStop(0.0, "rgba(0,0,0,0)");
     g2.addColorStop(0.5, "rgba(180,255,255,0.55)");
@@ -411,22 +409,19 @@
     drawGrit(ctx, w, h);
     drawVignette(ctx, w, h);
 
-    // tuck it down so text stays readable
+    // gentle dark tuck without blend modes
     ctx.save();
-    ctx.globalCompositeOperation = "multiply";
-    ctx.fillStyle = "rgba(0,0,0," + FX.multiplyDark + ")";
+    ctx.globalAlpha = FX.multiplyDark;
+    ctx.fillStyle = "rgba(0,0,0,1)";
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
+
 
     fxState.raf = requestAnimationFrame(renderFX);
   }
 
   function initTerminalFX() {
     if (!FX.enabled || !el.terminal) return;
-
-    // Ensure terminal is a containing block without setting position (you saw breaks)
-    // Requires your CSS to provide a safe containing context. If not, keep canvas absolute;
-    // it still renders but may not clip unless terminal already clips.
     try { el.terminal.style.overflow = "hidden"; } catch (e) {}
 
     var c = ensureCanvas();
