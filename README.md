@@ -1,5 +1,17 @@
-This project’s visual inspiration incorporates background animation concepts influenced by SFM work from the creator behind the MoonRealis YouTube channel (https://www.youtube.com/@moonrealis/videos
-), whose cinematic scenes and style informed portions of our aesthetic design.
+# CITY 77
+A custom Garry’s Mod loading screen built for City 77 (Vladivostok) — a post-war reclamation and resource-processing hub within the Half-Life 2 universe.
 
-All SFM animation footage referenced or showcased in project artwork/content remains the intellectual property of their respective creator.
-We include this acknowledgment in recognition of their influence; inclusion here does not imply permission for redistribution of that creator’s content, and we will promptly remove or replace any such material upon request.
+The design goal is minimalism with diegetic presentation.
+
+## Setting Context
+
+City 77 (Vladivostok) is a post-Portal Storm industrial reclamation zone activated years after the Seven Hour War. Once dormant, the city now functions as a critical resource extraction and processing node supporting Combine logistics and xenium refinement operations tied to nearby dimensional anomalies.
+
+## Media Credits
+
+Some background video loops used during development and presentation include SFM animation footage by MoonRealis
+https://www.youtube.com/@moonrealis/videos
+
+All such footage remains the intellectual property of its original creator.
+
+These assets are included with attribution and will be removed or replaced immediately upon request.
