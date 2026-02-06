@@ -159,7 +159,6 @@ var VIDEOS = [
   "assets/hideout.webm",
   "assets/street.webm",
   "assets/cm1.webm",
-  "assets/novabreen1.webm",
   "assets/ruinbreen1.webm",
 ];
 

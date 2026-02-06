@@ -85,7 +85,7 @@ html,body{
   width:calc(100vw - 64px);
   max-width:900px;
   border-radius:16px;
-  padding:40px 20px 40px;
+  padding:30px 20px 30px;
   overflow:hidden;
   background:rgba(10,14,24,.38);
   border:1px solid rgba(231,238,252,.10);
@@ -99,23 +99,31 @@ html,body{
   filter: brightness(1.06) contrast(1.05);
 }
 
-/* terminal texture layer */
-.terminal::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:0;
-  background: rgba(255,0,0,.35);
+.terminal > *:not(.tLayer){
+  z-index: 2;
 }
 
-/* subtle internal scanline noise */
-.terminal::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  z-index:1;
-  opacity:.08;
+/* Shared layer base */
+.tLayer{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Glow/gradient layer */
+.tGlow{
+  z-index: 0;
+  opacity: .75;
+  background:
+    radial-gradient(120% 160% at 25% 40%, rgba(90,200,210,.20), transparent 58%),
+    radial-gradient(90% 130% at 65% 30%, rgba(20,210,212,.14), transparent 62%),
+    linear-gradient(135deg, rgba(0,0,0,.22), rgba(0,0,0,.55));
+}
+
+/* Scanline/noise layer  */
+.tNoise{
+  z-index: 1;
+  opacity: .08;
   background:
     repeating-linear-gradient(
       to bottom,
@@ -124,6 +132,7 @@ html,body{
       transparent 2px,
       transparent 5px
     );
+  mix-blend-mode: overlay;
 }
 
 .terminal__frameTop,
@@ -131,7 +140,7 @@ html,body{
   position:absolute;
   left:-8px;
   right:-8px;
-  height: 60px;          /* adjust to your PNG height */
+  height: 60px;
   pointer-events:none;
   opacity:.3;
   background-repeat: no-repeat;
@@ -277,7 +286,7 @@ html,body{
 
 .terminal__mark{
   position:absolute;
-  right:230px;
+  right:250px;
   bottom:35px;
   width:120px;
   height:auto;
