@@ -169,7 +169,6 @@
       "assets/train1.webm",
       "assets/citadel.webm",
       "assets/cp1.webm",
-      "assets/c17.webm",
       "assets/hideout.webm",
       "assets/street.webm",
       "assets/cm1.webm",
