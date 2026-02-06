@@ -102,6 +102,7 @@ html,body{
 ========================= */
 
 .terminal{
+  position: fixed;
   color: rgba(231,238,252,.92);
 }
 
