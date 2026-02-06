@@ -45,10 +45,7 @@ var v = document.getElementById("bg");
 var startGate = document.getElementById("startGate");
 
 var VIDEOS = [
-  "assets/checkpointloop.webm",
-  "assets/trainrideloop.webm",
-  "assets/checkpointloop2.webm",
-  "assets/citadel.webm"
+  "assets/train2.webm",
 ];
 
 function pickVideo() {
