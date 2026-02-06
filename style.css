@@ -90,11 +90,21 @@ html,body{
   padding:30px 20px 30px;
 
   overflow:hidden;
-  background:var(--glass);
+  background:
+    radial-gradient(
+      140% 160% at 30% 40%,
+      rgba(140,255,255,.22) 0%,
+      rgba(90,220,230,.14) 35%,
+      rgba(0,0,0,.55) 72%,
+      rgba(0,0,0,.70) 100%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(0,18,24,.55),
+      rgba(0,0,0,.62)
+    );
   border:1px solid var(--glassBorder);
   box-shadow:0 16px 60px rgba(0,0,0,.35);
-
-  z-index:4;
 }
 
 /* =========================
