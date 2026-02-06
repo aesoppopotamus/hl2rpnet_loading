@@ -28,20 +28,22 @@
   <main class="wrap">
     <section class="card terminal" role="status" aria-live="polite">
       <!-- terminal visual layers -->
-      <div class="terminal__bg" aria-hidden="true"></div>
       <div class="terminal__scan" aria-hidden="true"></div>
+      <div class="terminal__frameTop" aria-hidden="true"></div>
+      <div class="terminal__frameBottom" aria-hidden="true"></div>
+
+      <!-- right-side number pool -->
+      <div class="terminal__rain" aria-hidden="true">
+        <pre id="rain"></pre>
+      </div>
       <div class="terminal__sub">URBAN NODE · CITY 77 · VLADIVOSTOK</div>
       <img class="terminal__mark" src="assets/Advisor_pod_logo.png" alt="" aria-hidden="true">
       <div class="terminal__sub">RESOURCE PROCESSING NODE · RES-77R</div>
+      
     
       <!-- header -->
       <header class="terminal__top">
         <div class="terminal__label">UU.TERMINAL.77-OVR-4E92A-CIV</div>
-        <div class="terminal__leds" aria-hidden="true">
-          <span class="led"></span>
-          <span class="led"></span>
-          <span class="led"></span>
-        </div>
       </header>
     
       <!-- info grid -->

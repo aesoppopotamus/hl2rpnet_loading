@@ -2,16 +2,18 @@
 
 :root{
   --bg:#0b0f19;
-  --panel:rgba(10,14,24,.62);
   --text:#e7eefc;
   --muted:rgba(231,238,252,.70);
   --muted2:rgba(231,238,252,.45);
-  --accent:#7aa7ff;
+
+  --glass: rgba(10,14,24,.38);
+  --glassBorder: rgba(231,238,252,.10);
+
+  --teal1: rgba(90,200,210,.20);
+  --teal2: rgba(20,210,212,.14);
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 html,body{
   height:100%;
@@ -29,127 +31,161 @@ html,body{
   width:100%;
   height:100%;
   object-fit:cover;
-  opacity:0.5S;
   filter:saturate(.95) contrast(1.05);
   background:#000;
+  z-index:0;
 }
 
-/* Overlay */
+/* Overlays */
 .vignette{
   position:fixed;
   inset:0;
   pointer-events:none;
+  z-index:1;
   background:
-    radial-gradient(
-      70% 70% at 50% 45%,
-      rgba(0,0,0,.08),
-      rgba(0,0,0,.20)
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(0,0,0,.05),
-      rgba(0,0,0,.20)
-    );
+    radial-gradient(70% 70% at 50% 45%, rgba(0,0,0,.08), rgba(0,0,0,.20)),
+    linear-gradient(to bottom, rgba(0,0,0,.05), rgba(0,0,0,.20));
 }
 
 .scanlines{
   position:fixed;
   inset:0;
   pointer-events:none;
-  z-index:1;
+  z-index:2;
 
-  /* subtle horizontal lines + a faint drifting noise sheen */
   background:
     repeating-linear-gradient(
       to bottom,
       rgba(255,255,255,.025) 0px,
       rgba(255,255,255,.025) 1px,
-      rgba(0,0,0,0) 2px,
-      rgba(0,0,0,0) 4px
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(0,0,0,.05),
-      rgba(0,0,0,0),
-      rgba(0,0,0,.05)
+      transparent 2px,
+      transparent 4px
     );
 
-  opacity:.26;
-  mix-blend-mode: overlay;
+  opacity:.18;
+  mix-blend-mode: normal;
+  animation: scanDrift 6s linear infinite;
 }
 
-/* optional: slight vertical drift so it feels “alive” */
 @keyframes scanDrift{
   0%   { transform: translateY(0); }
   100% { transform: translateY(6px); }
 }
 
-.scanlines{
-  animation: scanDrift 6s linear infinite;
-}
-
-
 /* Layout container */
 .wrap{
-  position:relative;
   z-index:2;
   height:100%;
   padding:32px;
 }
 
-/* ===== Bottom-aligned minimalist HUD =====
-   Goal: align with GMod's native loading UI near bottom-right.
-   We keep our UI bottom-left, low-profile.
-*/
-/* Bottom container position */
 .card{
-  position:absolute;
+  position:fixed;     /* not absolute */
   left:32px;
   bottom:32px;
-
-  width: calc(100vw - 64px);
-  max-width: 900px;
-
-  border-radius: 16px;
-  padding: 14px 16px 12px;
-
-  box-sizing:border-box;
+  width:calc(100vw - 64px);
+  max-width:900px;
+  border-radius:16px;
+  padding:40px 20px 40px;
   overflow:hidden;
-
-  /* glass */
-  background: rgba(10,14,24,.38);
-  border: 1px solid rgba(231,238,252,.10);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 16px 60px rgba(0,0,0,.35);
+  background:rgba(10,14,24,.38);
+  border:1px solid rgba(231,238,252,.10);
+  box-shadow:0 16px 60px rgba(0,0,0,.35);
+  z-index:10;         /* above vignette/scanlines */
 }
 
-/* === TERMINAL THEME (inside the bar only) === */
+/* ===== Terminal ===== */
 .terminal{
   color: rgba(231,238,252,.92);
 }
 
-.terminal__bg{
+/* terminal texture layer */
+.terminal::before{
+  content:"";
   position:absolute;
   inset:0;
-  opacity:.95;
   pointer-events:none;
+  z-index:0;
+  opacity:.75;
 
-  /* teal terminal texture */
   background:
-    radial-gradient(120% 160% at 25% 40%, rgba(90,200,210,.20), transparent 55%),
-    radial-gradient(80% 120% at 60% 35%, rgba(20,210,212,.14), transparent 60%),
-    linear-gradient(135deg, rgba(0,0,0,.28), rgba(0,0,0,.55)),
-    /* hex grid */
-    linear-gradient(30deg, rgba(0,0,0,.18) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,.18) 87.5%, rgba(0,0,0,.18)),
-    linear-gradient(150deg, rgba(0,0,0,.18) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,.18) 87.5%, rgba(0,0,0,.18)),
-    linear-gradient(90deg, rgba(0,0,0,.12) 2%, transparent 2.5%, transparent 97%, rgba(0,0,0,.12) 97.5%, rgba(0,0,0,.12));
-  background-size: auto, auto, auto, 36px 62px, 36px 62px, 36px 62px;
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 18px 31px;
-
-  mix-blend-mode: normal;
+    radial-gradient(120% 160% at 25% 40%, var(--teal1), transparent 58%),
+    radial-gradient(90% 130% at 65% 30%, var(--teal2), transparent 62%),
+    linear-gradient(135deg, rgba(0,0,0,.22), rgba(0,0,0,.55));
 }
 
-/* subtle moving scan shimmer across the panel */
+/* subtle internal scanline noise */
+.terminal::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+  opacity:.08;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.06) 0px,
+      rgba(255,255,255,.06) 1px,
+      transparent 2px,
+      transparent 5px
+    );
+}
+
+.terminal__frameTop,
+.terminal__frameBottom{
+  position:absolute;
+  left:-8px;
+  right:-8px;
+  height: 60px;          /* adjust to your PNG height */
+  pointer-events:none;
+  opacity:.3;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.terminal__frameTop{
+  top:0px;
+  left:2px;
+  background-image: url("assets/bordertop.png");
+}
+
+.terminal__frameBottom{
+  bottom:0px;
+  left:2px;
+  background-image: url("assets/borderbottom.png");
+}
+
+/* right-side number rain column */
+.terminal__rain{
+  position:absolute;
+  top:30px;
+  bottom:30px;
+  right:14px;
+  width:220px;
+  pointer-events:none;
+  opacity:.22;
+  overflow:hidden;
+  border-left: 1px solid rgba(231,238,252,.10);
+  padding-left:12px;
+
+  /* fade top/bottom so it feels embedded */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+.terminal__rain pre{
+  margin:0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  line-height: 12px;
+  letter-spacing: .12em;
+  color: rgba(140,255,255,.95);
+  text-shadow: 0 0 10px rgba(140,255,255,.12);
+  white-space: pre;
+}
+
+/* moving sweep shimmer */
 .terminal__scan{
   position:absolute;
   left:-30%;
@@ -157,14 +193,10 @@ html,body{
   width:30%;
   height:100%;
   pointer-events:none;
+  z-index:1;
   opacity:.16;
 
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(140,255,255,.45),
-    transparent
-  );
+  background: linear-gradient(to right, transparent, rgba(140,255,255,.45), transparent);
   transform: skewX(-18deg);
   animation: terminalSweep 4.2s linear infinite;
 }
@@ -174,13 +206,29 @@ html,body{
   100% { transform: translateX(460%) skewX(-18deg); }
 }
 
-.terminal__top{
+/* ensure content sits above texture layers */
+.terminal__sub,
+.terminal__top,
+.terminal__grid,
+.terminal__bulletin,
+.terminal__mark{
   position:relative;
+  z-index:2;
+}
+
+.terminal__sub{
+  font-size:8px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color: rgba(231,238,252,.35);
+}
+
+.terminal__top{
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:12px;
-  margin-bottom:10px;
+  margin: 2px 0 10px;
 }
 
 .terminal__label{
@@ -190,29 +238,11 @@ html,body{
   color: rgba(231,238,252,.60);
 }
 
-.terminal__leds{
-  display:flex;
-  gap:6px;
-}
-
-.led{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background: rgba(140,255,255,.55);
-  box-shadow: 0 0 10px rgba(140,255,255,.25);
-  opacity:.75;
-}
-.led:nth-child(2){ opacity:.45; }
-.led:nth-child(3){ opacity:.25; }
-
-
 .terminal__grid{
-  position:relative;
   display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px 18px;
-  margin-bottom:10px;
+  grid-template-columns: 0.8fr 1fr;
+  gap:6px 12px;
+  margin-bottom:18px;
 }
 
 .kv .k{
@@ -220,7 +250,7 @@ html,body{
   letter-spacing:.14em;
   text-transform:uppercase;
   color: rgba(231,238,252,.42);
-  margin-bottom:3px;
+  margin-bottom:4px;
 }
 
 .kv .v{
@@ -253,91 +283,22 @@ html,body{
 
 .terminal__mark{
   position:absolute;
-  right:150px;
-  bottom:10px;
+  right:230px;
+  bottom:35px;
   width:120px;
   height:auto;
-  opacity:.15;
+  opacity:.20;
   filter: blur(.2px);
-  mix-blend-mode: screen;
+  mix-blend-mode: normal; /* CEF-safe */
   pointer-events:none;
   user-select:none;
-}
-
-.terminal__sub{
-  font-size:8px;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color: rgba(231,238,252,.35);
-}
-
-
-.terminal::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  opacity:.08;
-  background-image:
-    repeating-linear-gradient(to bottom,
-      rgba(255,255,255,.06) 0px,
-      rgba(255,255,255,.06) 1px,
-      rgba(0,0,0,0) 2px,
-      rgba(0,0,0,0) 5px);
-  mix-blend-mode: overlay;
-}
-
-
-/* Mapped status (main) */
-.grid{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px 18px;
-  margin: 6px 0 10px;
-}
-
-.kv .k,
-.bulletin .k{
-  font-size:11px;
-  letter-spacing:.10em;
-  text-transform:uppercase;
-  color: rgba(231,238,252,.45);
-  margin-bottom:3px;
-}
-
-.kv .v{
-  font-size:12px;
-  letter-spacing:.06em;
-  color: rgba(231,238,252,.85);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.bulletin{
-  margin-top:4px;
-}
-
-.bulletin .status{
-  font-size:13px;           /* slightly smaller than before */
-  letter-spacing:.10em;
-  text-transform:uppercase;
-  color: rgba(231,238,252,.92);
-}
-
-.scanbar{
-  margin-top:10px;
-  height:2px;
-  background: rgba(231,238,252,.10);
-  border-radius:999px;
-  overflow:hidden;
 }
 
 /* Click gate overlay */
 .startGate{
   position:fixed;
   inset:0;
-  z-index:5;
+  z-index:10;
   display:grid;
   place-items:center;
   background: rgba(0,0,0,.55);
@@ -347,8 +308,8 @@ html,body{
   width:min(560px,92vw);
   background: rgba(10,14,24,.92);
   border: 1px solid rgba(231,238,252,.14);
-  border-radius: 16px;
-  padding: 18px 18px 14px;
+  border-radius:16px;
+  padding:18px 18px 14px;
   text-align:center;
   box-shadow: 0 18px 60px rgba(0,0,0,.55);
 }

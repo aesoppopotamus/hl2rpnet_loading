@@ -107,6 +107,42 @@ function maybeEcho() {
   }, ECHO_SHOW_MS);
 }
 
+// ==============================
+// Cosmetic: right-side number pool
+// ==============================
+(function terminalRain(){
+  var el = document.getElementById("rain");
+  if (!el) return;
+
+  var rows = 22;       // tuned for your card height
+  var cols = 14;       // tuned for your rain width
+  var buf = [];
+  var charset = "0123456789";
+
+  function randLine() {
+    var s = "";
+    for (var c = 0; c < cols; c++) {
+      s += charset[(Math.random() * charset.length) | 0];
+      if ((c % 4) === 3) s += " "; // spacing like “blocks”
+    }
+    return s;
+  }
+
+  // seed
+  for (var r = 0; r < rows; r++) buf.push(randLine());
+
+  // tick: scroll downward
+  function tick(){
+    buf.shift();
+    buf.push(randLine());
+    el.textContent = buf.join("\n");
+  }
+
+  // slower = less distracting
+  tick();
+  setInterval(tick, 140); // 120–180 is a good range
+})();
+
 
 // ==============================
 // Video selection + playback
