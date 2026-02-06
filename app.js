@@ -1,13 +1,19 @@
 // ==============================
-// Progress / GMod loading hooks
+// Combine terminal HUD hooks
 // ==============================
-var fill = document.getElementById("fill");
 var statusEl = document.getElementById("status");
+var nodeEl   = document.getElementById("node");
+var sectorEl = document.getElementById("sector");
+var modeEl   = document.getElementById("mode");
+var capEl    = document.getElementById("cap");
+var scanEl   = document.getElementById("scan");
 
-// ADD: status mapping helpers (minimal)
-function norm(s) {
-  return (s || "").toLowerCase();
+function setText(el, txt) {
+  if (!el) return;
+  el.textContent = txt || "";
 }
+
+function norm(s) { return (s || "").toLowerCase(); }
 
 function mapStatus(raw) {
   var s = raw || "";
@@ -23,30 +29,16 @@ function mapStatus(raw) {
   if (n.indexOf("mounting") !== -1) return "ASSEMBLY…";
   if (n.indexOf("precaching") !== -1) return "STAGING…";
 
-  if (n.indexOf("starting lua") !== -1) return "RUNTIME INITIALIZING…";
   if (n.indexOf("lua") !== -1) return "RUNTIME INITIALIZING…";
-
-  if (n.indexOf("sending") !== -1) return "UPLINK…";
-  if (n.indexOf("receiving") !== -1) return "DOWNLINK…";
 
   return s || "PROCESSING…";
 }
 
-function setProgress(p) {
-  if (!fill) return;
-  if (p < 0) p = 0;
-  if (p > 1) p = 1;
-
-  // Never show 100% until it actually finishes
-  var pct = Math.floor(p * 98) + 2; // 2%..100% (but not visually “done” too early)
-  fill.style.width = pct + "%";
-}
-
-var filesTotal = 0;
-var isGmod = false;
-
-window.GameDetails = function () {
-  isGmod = true;
+window.GameDetails = function (servername, serverurl, mapname, maxplayers, steamid, gamemode) {
+  setText(nodeEl,   servername || "UNSPECIFIED");
+  setText(sectorEl, mapname || "UNKNOWN");
+  setText(modeEl,   gamemode || "UNDEFINED");
+  setText(capEl,    maxplayers ? String(maxplayers) : "—");
 
   // Hide any audio UI in real GMod context
   var audioBtn = document.getElementById("audioToggle");
@@ -54,22 +46,67 @@ window.GameDetails = function () {
 };
 
 window.SetStatusChanged = function (s) {
-  // CHANGE: apply mapping
-  var mapped = mapStatus(s);
-  if (statusEl) statusEl.textContent = mapped || "LOADING…";
+  setText(statusEl, mapStatus(s));
+  maybeEcho();
 };
 
-window.SetFilesTotal = function (total) {
-  filesTotal = total || 0;
-};
+// Cosmetic scan animation (NOT progress)
+(function startScan() {
+  if (!scanEl) return;
+  var t0 = new Date().getTime();
 
-window.SetFilesNeeded = function (needed) {
-  if (!filesTotal) return;
-  setProgress((filesTotal - needed) / filesTotal);
-};
+  function tick() {
+    var t = (new Date().getTime() - t0) / 1400;
+    var p = t % 1;
+    scanEl.style.width = Math.round(p * 100) + "%";
+    setTimeout(tick, 33);
+  }
+  tick();
+})();
 
-// Small non-zero start so it doesn't look dead
-setProgress(0.02);
+setText(statusEl, "CONNECTION INITIALIZATION…");
+
+// ==============================
+// Historical echo (rare overlay)
+// ==============================
+var ECHO_LINES = [
+  "ARCHIVAL NOTICE: CITY DORMANT · 14 CYCLES",
+  "PRIOR DESIGNATION: VLADIVOSTOK",
+  "POST-STORM ACTIVATION CONFIRMED",
+  "REPOPULATION PHASE IN PROGRESS",
+  "RESOURCE PROCESSING NODE · RES-77R"
+];
+
+// Tunables
+var ECHO_CHANCE = 0.08;      // 8% per eligible status update
+var ECHO_MIN_MS = 8000;      // at least 8s between echoes
+var ECHO_SHOW_MS = 2200;     // echo visible for 2.2s
+
+var _lastEchoAt = 0;
+var _echoTimer = null;
+
+function maybeEcho() {
+  if (!statusEl) return;
+
+  var now = Date.now();
+  if (now - _lastEchoAt < ECHO_MIN_MS) return;
+  if (Math.random() > ECHO_CHANCE) return;
+
+  _lastEchoAt = now;
+
+  var line = ECHO_LINES[Math.floor(Math.random() * ECHO_LINES.length)];
+  var prev = statusEl.textContent;
+
+  statusEl.textContent = line;
+
+  if (_echoTimer) clearTimeout(_echoTimer);
+  _echoTimer = setTimeout(function () {
+    // restore whatever the current mapped status should be
+    statusEl.textContent = prev;
+    _echoTimer = null;
+  }, ECHO_SHOW_MS);
+}
+
 
 // ==============================
 // Video selection + playback
@@ -80,21 +117,13 @@ var startGate = document.getElementById("startGate");
 var VIDEOS = [
   "assets/plaza.webm",
   "assets/train2.webm",
+  "assets/citadel.webm",
+  "assets/cp1.webm",
+  "assets/c17.webm",
 ];
 
 function pickVideo() {
-  // Keep choice stable for the tab so refresh doesn’t flicker
-  try {
-    var key = "gmod_loading_pick";
-    var existing = sessionStorage.getItem(key);
-    if (existing && arrayIncludes(VIDEOS, existing)) return existing;
-
-    var chosen = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
-    sessionStorage.setItem(key, chosen);
-    return chosen;
-  } catch (e) {
-    return VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
-  }
+  return VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
 }
 
 function arrayIncludes(arr, val) {

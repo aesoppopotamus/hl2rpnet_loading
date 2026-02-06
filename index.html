@@ -24,18 +24,59 @@
 
   <!-- Bottom-aligned HUD -->
   <main class="wrap">
-    <section class="card" role="status" aria-live="polite">
-
-      <header class="top">
-        <h1 class="title">CONNECTION INITIALIZATION</h1>
+    <section class="card terminal" role="status" aria-live="polite">
+      <!-- terminal visual layers -->
+      <div class="terminal__bg" aria-hidden="true"></div>
+      <div class="terminal__scan" aria-hidden="true"></div>
+      <div class="terminal__sub">URBAN NODE · CITY 77 · VLADIVOSTOK</div>
+      <img class="terminal__mark" src="assets/Advisor_pod_logo.png" alt="" aria-hidden="true">
+      <div class="terminal__sub">RESOURCE PROCESSING NODE · RES-77R</div>
+    
+      <!-- header -->
+      <header class="terminal__top">
+        <div class="terminal__label">CCA TERMINAL</div>
+        <div class="terminal__leds" aria-hidden="true">
+          <span class="led"></span>
+          <span class="led"></span>
+          <span class="led"></span>
+        </div>
       </header>
-
-      <div id="status" class="status">PROCESSING…</div>
-
-      <div class="topbar">
-        <div id="fill" class="topbar__fill"></div>
+    
+      <!-- info grid -->
+      <div class="terminal__grid">
+        <div class="kv">
+          <div class="k">NODE</div>
+          <div id="node" class="v">—</div>
+        </div>
+      
+        <div class="kv">
+          <div class="k">SECTOR</div>
+          <div id="sector" class="v">—</div>
+        </div>
+      
+        <div class="kv">
+          <div class="k">MODE</div>
+          <div id="mode" class="v">—</div>
+        </div>
+      
+        <div class="kv">
+          <div class="k">CAP</div>
+          <div id="cap" class="v">—</div>
+        </div>
       </div>
-
+    
+      <!-- bulletin line -->
+      <div class="terminal__bulletin">
+        <div class="k">BULLETIN</div>
+        <div id="status" class="terminal__status">
+          CONNECTION INITIALIZATION…
+        </div>
+      </div>
+    
+      <!-- cosmetic scan bar -->
+      <div class="terminal__bar" aria-hidden="true">
+        <div id="scan" class="terminal__barFill"></div>
+      </div>
     </section>
   </main>
 
