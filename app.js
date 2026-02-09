@@ -181,7 +181,7 @@
     list: [
       "assets/background.mp3"
     ],
-    vol: 0.6
+    vol: 0.2
   };
 
   function pickVideo() {
