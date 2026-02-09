@@ -11,6 +11,7 @@
     mode: document.getElementById("mode"),
     cap: document.getElementById("cap"),
     bgVideo: document.getElementById("bg"),
+    bgm: document.getElementById("bgm"),
     startGate: document.getElementById("startGate"),
     terminal: document.querySelector(".card.terminal") || document.querySelector(".terminal")
   };
@@ -176,8 +177,19 @@
     vol: 0.4
   };
 
+  var MUSIC = {
+    list: [
+      "assets/background.mp3"
+    ],
+    vol: 0.6
+  };
+
   function pickVideo() {
     return VIDEO.list[(Math.random() * VIDEO.list.length) | 0];
+  }
+
+  function pickMusic() {
+    return MUSIC.list[(Math.random() * MUSIC.list.length) | 0];
   }
 
   function hideGate() {
@@ -197,21 +209,40 @@
         el.bgVideo.play();
       } catch (e) {}
 
+      try {
+        if (el.bgm) {
+          el.bgm.muted = false;
+          el.bgm.volume = MUSIC.vol;
+          el.bgm.play();
+        }
+      } catch (e) {}
+
       setTimeout(function () {
-        if (el.bgVideo && !el.bgVideo.paused) hideGate();
+        var videoOk = !el.bgVideo || !el.bgVideo.paused;
+        var audioOk = !el.bgm || !el.bgm.paused;
+        if (videoOk && audioOk) hideGate();
       }, 120);
     };
   }
 
   function tryStartPlayback() {
-    var p = null;
-    try { p = el.bgVideo.play(); } catch (e) { p = null; }
+    var videoPromise = null;
+    var audioPromise = null;
 
-    if (p && typeof p.then === "function") {
-      p.then(hideGate).catch(showGate);
+    try { videoPromise = el.bgVideo.play(); } catch (e) { videoPromise = null; }
+    try { if (el.bgm) audioPromise = el.bgm.play(); } catch (e) { audioPromise = null; }
+
+    var promises = [];
+    if (videoPromise && typeof videoPromise.then === "function") promises.push(videoPromise);
+    if (audioPromise && typeof audioPromise.then === "function") promises.push(audioPromise);
+
+    if (promises.length) {
+      Promise.all(promises).then(hideGate).catch(showGate);
     } else {
       setTimeout(function () {
-        if (!el.bgVideo || el.bgVideo.paused) showGate();
+        var videoBlocked = el.bgVideo && el.bgVideo.paused;
+        var audioBlocked = el.bgm && el.bgm.paused;
+        if (videoBlocked || audioBlocked) showGate();
         else hideGate();
       }, 250);
     }
@@ -236,11 +267,25 @@
     tryStartPlayback();
   }
 
+  function initAudio() {
+    if (!el.bgm) return;
+
+    el.bgm.src = pickMusic();
+    try { el.bgm.load(); } catch (e) {}
+
+    el.bgm.loop = true;
+    el.bgm.preload = "auto";
+    el.bgm.muted = false;
+    el.bgm.volume = MUSIC.vol;
+    el.bgm.setAttribute("autoplay", "");
+  }
+
   // ==============================
   // Boot (no terminal background FX)
   // ==============================
   function boot() {
     startRain();
+    initAudio();
     initVideo();
   }
 
