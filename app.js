@@ -174,12 +174,17 @@
       "assets/street.webm",
       "assets/cm1.webm",
     ],
-    vol: 0.4
+    vol: 0.2
   };
 
   var MUSIC = {
     list: [
-      "assets/background.mp3"
+      "assets/background.mp3",
+      "assets/godspeed.mp3",
+      "assets/goteberg.mp3",
+      "assets/scum.mp3",
+      "assets/bones.mp3",
+      "assets/precipice.mp3",
     ],
     vol: 0.2
   };
@@ -190,6 +195,21 @@
 
   function pickMusic() {
     return MUSIC.list[(Math.random() * MUSIC.list.length) | 0];
+  }
+
+  function pickNextMusic(currentSrc) {
+    var list = MUSIC.list;
+    if (!list.length) return "";
+    if (list.length === 1) return list[0];
+
+    var currentName = String(currentSrc || "").split("/").pop();
+    var next = "";
+
+    do {
+      next = list[(Math.random() * list.length) | 0];
+    } while (next.split("/").pop() === currentName);
+
+    return next;
   }
 
   function hideGate() {
@@ -273,11 +293,20 @@
     el.bgm.src = pickMusic();
     try { el.bgm.load(); } catch (e) {}
 
-    el.bgm.loop = true;
+    el.bgm.loop = false;
     el.bgm.preload = "auto";
     el.bgm.muted = false;
     el.bgm.volume = MUSIC.vol;
     el.bgm.setAttribute("autoplay", "");
+
+    el.bgm.onended = function () {
+      var next = pickNextMusic(el.bgm.currentSrc);
+      if (!next) return;
+
+      el.bgm.src = next;
+      try { el.bgm.load(); } catch (e) {}
+      try { el.bgm.play(); } catch (e) {}
+    };
   }
 
   // ==============================
