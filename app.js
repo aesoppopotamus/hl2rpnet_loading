@@ -22,6 +22,41 @@
   }
 
   function norm(s) { return String(s || "").toLowerCase(); }
+  function isFn(v) { return typeof v === "function"; }
+
+  var STATE = {
+    inGMod: false,
+    allowGateAt: 0
+  };
+
+  function detectGModContext() {
+    var proto = norm(window.location && window.location.protocol);
+    var ua = norm(window.navigator && window.navigator.userAgent);
+
+    if (proto === "asset:" || proto === "gmod:") return true;
+    if (ua.indexOf("gmod") !== -1) return true;
+    if (ua.indexOf("awesomium") !== -1) return true;
+
+    return false;
+  }
+
+  function clampVol(v) {
+    var n = Number(v);
+    if (isNaN(n)) return 0;
+    if (n < 0) return 0;
+    if (n > 1) return 1;
+    return n;
+  }
+
+  function applyVideoVolume() {
+    if (!el.bgVideo) return;
+    try { el.bgVideo.volume = clampVol(VIDEO.vol); } catch (e) {}
+  }
+
+  function applyMusicVolume() {
+    if (!el.bgm) return;
+    try { el.bgm.volume = clampVol(MUSIC.vol); } catch (e) {}
+  }
 
   // ==============================
   // Status mapping (GMod hook -> Combine-ish text)
@@ -86,6 +121,9 @@
   // GMod hooks (exposed globally)
   // ==============================
   window.GameDetails = function (servername, serverurl, mapname, maxplayers, steamid, gamemode) {
+    STATE.inGMod = true;
+    hideGate();
+
     setText(el.node, servername || "UNSPECIFIED");
     setText(el.sector, mapname || "UNKNOWN");
     setText(el.mode, gamemode || "UNDEFINED");
@@ -219,20 +257,22 @@
   }
 
   function showGate() {
+    if (STATE.inGMod) return;
+    if (Date.now() < STATE.allowGateAt) return;
     if (!el.startGate) return;
 
     el.startGate.style.display = "block";
     el.startGate.onclick = function () {
       try {
         el.bgVideo.muted = false;
-        el.bgVideo.volume = VIDEO.vol;
+        applyVideoVolume();
         el.bgVideo.play();
       } catch (e) {}
 
       try {
         if (el.bgm) {
           el.bgm.muted = false;
-          el.bgm.volume = MUSIC.vol;
+          applyMusicVolume();
           el.bgm.play();
         }
       } catch (e) {}
@@ -257,12 +297,14 @@
     if (audioPromise && typeof audioPromise.then === "function") promises.push(audioPromise);
 
     if (promises.length) {
-      Promise.all(promises).then(hideGate).catch(showGate);
+      Promise.all(promises).then(hideGate).catch(function () {
+        if (!STATE.inGMod) showGate();
+      });
     } else {
       setTimeout(function () {
         var videoBlocked = el.bgVideo && el.bgVideo.paused;
         var audioBlocked = el.bgm && el.bgm.paused;
-        if (videoBlocked || audioBlocked) showGate();
+        if ((videoBlocked || audioBlocked) && !STATE.inGMod) showGate();
         else hideGate();
       }, 250);
     }
@@ -279,7 +321,13 @@
 
     // Attempt unmuted autoplay (may be blocked)
     el.bgVideo.muted = false;
-    el.bgVideo.volume = VIDEO.vol;
+    applyVideoVolume();
+
+    if (isFn(el.bgVideo.addEventListener)) {
+      el.bgVideo.addEventListener("loadedmetadata", applyVideoVolume);
+      el.bgVideo.addEventListener("canplay", applyVideoVolume);
+      el.bgVideo.addEventListener("play", applyVideoVolume);
+    }
 
     el.bgVideo.setAttribute("playsinline", "");
     el.bgVideo.setAttribute("autoplay", "");
@@ -296,8 +344,14 @@
     el.bgm.loop = false;
     el.bgm.preload = "auto";
     el.bgm.muted = false;
-    el.bgm.volume = MUSIC.vol;
+    applyMusicVolume();
     el.bgm.setAttribute("autoplay", "");
+
+    if (isFn(el.bgm.addEventListener)) {
+      el.bgm.addEventListener("loadedmetadata", applyMusicVolume);
+      el.bgm.addEventListener("canplay", applyMusicVolume);
+      el.bgm.addEventListener("play", applyMusicVolume);
+    }
 
     el.bgm.onended = function () {
       var next = pickNextMusic(el.bgm.currentSrc);
@@ -305,6 +359,7 @@
 
       el.bgm.src = next;
       try { el.bgm.load(); } catch (e) {}
+      applyMusicVolume();
       try { el.bgm.play(); } catch (e) {}
     };
   }
@@ -313,6 +368,9 @@
   // Boot (no terminal background FX)
   // ==============================
   function boot() {
+    STATE.inGMod = detectGModContext();
+    STATE.allowGateAt = Date.now() + 2500;
+    if (STATE.inGMod) hideGate();
     startRain();
     initAudio();
     initVideo();
