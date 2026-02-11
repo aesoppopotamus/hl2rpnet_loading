@@ -174,7 +174,7 @@
       "assets/street.webm",
       "assets/cm1.webm",
     ],
-    vol: 0.2
+    vol: 0.1
   };
 
   var MUSIC = {
@@ -186,7 +186,7 @@
       "assets/bones.mp3",
       "assets/precipice.mp3",
     ],
-    vol: 0.2
+    vol: 0.1
   };
 
   function pickVideo() {
