@@ -361,36 +361,3 @@ html,body{
   z-index:3;
 }
 
-/* =========================
-   Click gate
-========================= */
-.startGate{
-  position:fixed;
-  inset:0;
-  z-index:20;
-  display:grid;
-  place-items:center;
-  background: rgba(0,0,0,.55);
-}
-
-.startGate__card{
-  width:min(560px,92vw);
-  background: rgba(10,14,24,.92);
-  border: 1px solid rgba(231,238,252,.14);
-  border-radius:16px;
-  padding:18px 18px 14px;
-  text-align:center;
-  box-shadow: 0 18px 60px rgba(0,0,0,.55);
-  pointer-events:auto;
-}
-
-.startGate__title{
-  font-size:16px;
-  margin:0 0 8px 0;
-  color: var(--text);
-}
-
-.startGate__sub{
-  font-size:12px;
-  color: var(--muted);
-}

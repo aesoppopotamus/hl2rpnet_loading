@@ -12,7 +12,6 @@
     cap: document.getElementById("cap"),
     bgVideo: document.getElementById("bg"),
     bgm: document.getElementById("bgm"),
-    startGate: document.getElementById("startGate"),
     terminal: document.querySelector(".card.terminal") || document.querySelector(".terminal")
   };
 
@@ -23,22 +22,6 @@
 
   function norm(s) { return String(s || "").toLowerCase(); }
   function isFn(v) { return typeof v === "function"; }
-
-  var STATE = {
-    inGMod: false,
-    allowGateAt: 0
-  };
-
-  function detectGModContext() {
-    var proto = norm(window.location && window.location.protocol);
-    var ua = norm(window.navigator && window.navigator.userAgent);
-
-    if (proto === "asset:" || proto === "gmod:") return true;
-    if (ua.indexOf("gmod") !== -1) return true;
-    if (ua.indexOf("awesomium") !== -1) return true;
-
-    return false;
-  }
 
   function clampVol(v) {
     var n = Number(v);
@@ -121,9 +104,6 @@
   // GMod hooks (exposed globally)
   // ==============================
   window.GameDetails = function (servername, serverurl, mapname, maxplayers, steamid, gamemode) {
-    STATE.inGMod = true;
-    hideGate();
-
     setText(el.node, servername || "UNSPECIFIED");
     setText(el.sector, mapname || "UNKNOWN");
     setText(el.mode, gamemode || "UNDEFINED");
@@ -200,7 +180,7 @@
   }
 
   // ==============================
-  // Video selection + autoplay gate
+  // Video selection + autoplay
   // ==============================
   var VIDEO = {
     list: [
@@ -250,41 +230,6 @@
     return next;
   }
 
-  function hideGate() {
-    if (!el.startGate) return;
-    el.startGate.style.display = "none";
-    el.startGate.onclick = null;
-  }
-
-  function showGate() {
-    if (STATE.inGMod) return;
-    if (Date.now() < STATE.allowGateAt) return;
-    if (!el.startGate) return;
-
-    el.startGate.style.display = "block";
-    el.startGate.onclick = function () {
-      try {
-        el.bgVideo.muted = false;
-        applyVideoVolume();
-        el.bgVideo.play();
-      } catch (e) {}
-
-      try {
-        if (el.bgm) {
-          el.bgm.muted = false;
-          applyMusicVolume();
-          el.bgm.play();
-        }
-      } catch (e) {}
-
-      setTimeout(function () {
-        var videoOk = !el.bgVideo || !el.bgVideo.paused;
-        var audioOk = !el.bgm || !el.bgm.paused;
-        if (videoOk && audioOk) hideGate();
-      }, 120);
-    };
-  }
-
   function tryStartPlayback() {
     var videoPromise = null;
     var audioPromise = null;
@@ -296,18 +241,7 @@
     if (videoPromise && typeof videoPromise.then === "function") promises.push(videoPromise);
     if (audioPromise && typeof audioPromise.then === "function") promises.push(audioPromise);
 
-    if (promises.length) {
-      Promise.all(promises).then(hideGate).catch(function () {
-        if (!STATE.inGMod) showGate();
-      });
-    } else {
-      setTimeout(function () {
-        var videoBlocked = el.bgVideo && el.bgVideo.paused;
-        var audioBlocked = el.bgm && el.bgm.paused;
-        if ((videoBlocked || audioBlocked) && !STATE.inGMod) showGate();
-        else hideGate();
-      }, 250);
-    }
+    if (promises.length) Promise.all(promises).catch(function () {});
   }
 
   function initVideo() {
@@ -368,9 +302,6 @@
   // Boot (no terminal background FX)
   // ==============================
   function boot() {
-    STATE.inGMod = detectGModContext();
-    STATE.allowGateAt = Date.now() + 2500;
-    if (STATE.inGMod) hideGate();
     startRain();
     initAudio();
     initVideo();
