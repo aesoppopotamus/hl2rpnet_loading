@@ -349,6 +349,15 @@ html,body{
   text-overflow:ellipsis;
 }
 
+.terminal__requirement{
+  margin-top:6px;
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color: rgba(231,238,252,.76);
+  white-space:normal;
+}
+
 .terminal__mark{
   position:absolute;
   right:250px;
